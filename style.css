@@ -44,7 +44,7 @@ input:focus {
 
 button#add-btn {
     padding: 10px 20px;
-    background: #4cd86b;
+    background: #7e66ea;
     color: white;
     border: none;
     border-radius: 10px;
@@ -53,7 +53,7 @@ button#add-btn {
 }
 
 button#add-btn:hover {
-    background: #8cf0a1;
+    background: #aa98fa;
     transform: translateY(-2px);
 }
 
