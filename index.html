@@ -3,22 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Smart To-Do List</title>
+    <title>My Smart To-Do v4.1 Pro Fixed</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
     <div class="container">
-        <h1>รายการที่ต้องทำ 📝</h1>
-
-        <div class="input-group">
-            <input type="text" id="todo-input" placeholder="วันนี้ทำอะไรดีนะ...">
-            <button id="add-btn">เพิ่ม</button>
+        <div class="header-section">
+            <h1>รายการที่ต้องทำ 📝</h1>
+            <div class="input-group">
+                <input type="text" id="todo-input" placeholder="วันนี้ทำอะไรดีนะ...">
+                <select id="priority-input">
+                    <option value="normal">ปกติ 🟢</option>
+                    <option value="urgent">ด่วน 🔥</option>
+                </select>
+                <button id="add-btn">เพิ่ม</button>
+            </div>
         </div>
 
-        <ul id="todo-list">
-            </ul>
+        <div class="list-wrapper">
+            <ul id="todo-list"></ul>
+        </div>
+
+        <div class="footer-section">
+            <button id="clear-all-btn" class="clear-all-btn">ล้างรายการทั้งหมด</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
