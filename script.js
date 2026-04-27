@@ -1,97 +1,99 @@
-// 1. อ้างอิง HTML Elements
 const inputField = document.getElementById('todo-input');
+const priorityField = document.getElementById('priority-input');
 const addButton = document.getElementById('add-btn');
 const todoList = document.getElementById('todo-list');
+const clearAllBtn = document.getElementById('clear-all-btn');
 
-// --- ส่วนของระบบความจำ (LocalStorage) ---
+// 🚀 ระบบลากวาง (Drag & Drop)
+new Sortable(todoList, {
+    animation: 200,
+    handle: 'li', // ให้ลากได้ทั้งแผ่น
+    onEnd: function() {
+        updateOrder();
+        saveData();
+    }
+});
 
-// ฟังก์ชันสำหรับ "เซฟ" ข้อมูลลงในเครื่อง
 function saveData() {
-    localStorage.setItem("myTodoList", todoList.innerHTML);
+    localStorage.setItem("mySmartTodoV4_Fixed", todoList.innerHTML);
 }
 
-// ฟังก์ชันสำหรับ "ดึง" ข้อมูลที่เคยเซฟไว้มาแสดง
 function loadData() {
-    const savedContent = localStorage.getItem("myTodoList");
-    if (savedContent) {
-        todoList.innerHTML = savedContent;
-        // ต้องไปผูก Event (คลิก/ลบ) ให้กับรายการที่ดึงมาใหม่ด้วย
-        attachEventsToExistingItems();
+    const saved = localStorage.getItem("mySmartTodoV4_Fixed");
+    if (saved) {
+        todoList.innerHTML = saved;
+        attachEvents();
+        updateOrder();
     }
 }
 
-// --- ส่วนของ Logic หลัก ---
+function updateOrder() {
+    const items = todoList.querySelectorAll('li');
+    items.forEach((item, index) => {
+        const orderSpan = item.querySelector('.order-number');
+        if (orderSpan) orderSpan.innerText = `${index + 1}.`;
+    });
+}
 
 function addTodo() {
-    const taskText = inputField.value;
+    const text = inputField.value.trim();
+    const prio = priorityField.value;
+    if (!text) return;
 
-    if (taskText === "") {
-        alert("น้องอย่าลืมพิมพ์รายการก่อนนะจ๊ะ!");
-        return;
-    }
-
-    // สร้างรายการใหม่
-    const listItem = document.createElement('li');
+    const li = document.createElement('li');
+    li.className = prio; // 'urgent' หรือ 'normal'
     
-    // สร้างส่วนข้อความ
-    const textSpan = document.createElement('span');
-    textSpan.className = "todo-text";
-    textSpan.innerText = taskText;
-    
-    // สร้างปุ่มลบ
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = "delete-btn";
-    deleteBtn.innerText = "ลบ";
+    const time = new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
 
-    // ใส่ข้อความและปุ่มลงใน li
-    listItem.appendChild(textSpan);
-    listItem.appendChild(deleteBtn);
-    
-    // ใส่ li ลงใน ul
-    todoList.appendChild(listItem);
+    li.innerHTML = `
+        <div class="todo-content">
+            <span class="order-number"></span>
+            <div class="todo-details">
+                <div>
+                    <span class="todo-text">${text}</span>
+                    <span class="badge ${prio === 'urgent' ? 'bg-urgent' : 'bg-normal'}">
+                        ${prio === 'urgent' ? 'ด่วน' : 'ปกติ'}
+                    </span>
+                </div>
+                <span class="timestamp">เมื่อ: ${time}</span>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="done-btn">✔</button>
+            <button class="delete-btn">ลบ</button>
+        </div>
+    `;
 
-    // เคลียร์ช่องพิมพ์
+    todoList.appendChild(li);
     inputField.value = "";
-
-    // ผูกคำสั่งคลิก (หลังจากสร้างเสร็จ)
-    addClickEvents(listItem);
-    
-    // เซฟข้อมูลทุกครั้งที่มีการเพิ่ม
+    bindActions(li);
+    updateOrder();
     saveData();
 }
 
-// ฟังก์ชันสำหรับจัดการคลิก (ขีดฆ่า/ลบ)
-function addClickEvents(item) {
-    const text = item.querySelector('.todo-text');
-    const btn = item.querySelector('.delete-btn');
+function bindActions(item) {
+    const doneBtn = item.querySelector('.done-btn');
+    const delBtn = item.querySelector('.delete-btn');
 
-    // คลิกเพื่อขีดฆ่า
-    text.addEventListener('click', () => {
-        text.style.textDecoration = text.style.textDecoration === 'line-through' ? 'none' : 'line-through';
-        text.style.color = text.style.color === 'gray' ? 'black' : 'gray';
-        saveData(); // เซฟสถานะขีดฆ่าด้วย
+    doneBtn.addEventListener('click', () => {
+        item.classList.toggle('done');
+        doneBtn.innerText = item.classList.contains('done') ? '↩' : '✔';
+        saveData();
     });
 
-    // คลิกเพื่อลบ
-    btn.addEventListener('click', () => {
+    delBtn.addEventListener('click', () => {
         item.remove();
-        saveData(); // เซฟหลังจากลบ
+        updateOrder();
+        saveData();
     });
 }
 
-// ฟังก์ชันพิเศษ: ไล่ผูกคำสั่งให้รายการที่โหลดมาจากความจำ
-function attachEventsToExistingItems() {
-    const items = todoList.querySelectorAll('li');
-    items.forEach(item => addClickEvents(item));
+function attachEvents() {
+    todoList.querySelectorAll('li').forEach(li => bindActions(li));
 }
 
-// 2. ผูกเหตุการณ์ (Event Listeners)
 addButton.addEventListener('click', addTodo);
+inputField.addEventListener('keypress', (e) => e.key === 'Enter' && addTodo());
+clearAllBtn.addEventListener('click', () => confirm("ล้างทั้งหมด?") && (todoList.innerHTML = "", saveData()));
 
-// กด Enter เพื่อเพิ่มรายการได้ด้วย
-inputField.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addTodo();
-});
-
-// 3. เริ่มต้นแอป: โหลดข้อมูลที่เคยเซฟไว้
 loadData();
